@@ -20,6 +20,12 @@ bikes <- read_csv("data/bluebikes.csv") %>%
 bikes
 ```
 
+```{r}
+bikes %>%
+  group_by(`start station id`, `end station id`) %>%
+  summarize(count = n()) %>%
+  arrange(-count)
+```
 
 ```{r}
 genders = bikes %>%
@@ -100,6 +106,17 @@ get_googlemap(
 ```
 
 ```{r}
+get_googlemap(
+  "42.345,-71.075", zoom = 13, maptype = "roadmap",
+  style = c(feature = "poi", visibility = "off")
+) %>%
+  ggmap() +
+  geom_point(aes(x = lon, y = lat, size = ratio), alpha = 0.4, data = station_ratios) +
+  labs(size = "Customer Trips / Total")
+  theme_void()
+```
+
+```{r}
 users = bikes %>%
   filter(`birth year` != "NULL") %>%
   mutate(`birth year` = parse_integer(`birth year`))
@@ -115,7 +132,16 @@ real_users %>%
 ```
 
 ```{r}
-real_users %>%
+birth_buckets = real_users %>%
   group_by(`birth year`) %>%
-  summarize(count = n())
+  summarize(count = n()) %>%
+  arrange(-count)
+
+birth_buckets
+```
+
+```{r}
+birth_buckets %>%
+  ggplot() +
+  geom_bar(aes(x = `birth year`, fill = count))
 ```
