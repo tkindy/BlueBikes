@@ -117,11 +117,9 @@ get_googlemap(
 ```
 
 ```{r}
-users = bikes %>%
+real_users = bikes %>%
   filter(`birth year` != "NULL") %>%
-  mutate(`birth year` = parse_integer(`birth year`))
-
-real_users = users %>%
+  mutate(`birth year` = parse_integer(`birth year`)) %>%
   filter(!(`birth year` == 1969 & gender == 0))
 
 real_users %>%
@@ -142,4 +140,16 @@ real_users %>%
 real_users %>%
   ggplot() +
   geom_bar(aes(x = `birth year`))
+```
+
+```{r}
+real_users %>%
+  filter(`birth year` >= 1920) %>%
+  ggplot() +
+  geom_bar(aes(x = `birth year`)) +
+  labs(
+    title = "Birth Year of Users Born After 1920",
+    x = "Birth Year",
+    y = "Number of Users"
+  )
 ```
