@@ -132,16 +132,14 @@ real_users %>%
 ```
 
 ```{r}
-birth_buckets = real_users %>%
+real_users %>%
   group_by(`birth year`) %>%
   summarize(count = n()) %>%
   arrange(-count)
-
-birth_buckets
 ```
 
 ```{r}
-birth_buckets %>%
+real_users %>%
   ggplot() +
-  geom_bar(aes(x = `birth year`, fill = count))
+  geom_bar(aes(x = `birth year`))
 ```
