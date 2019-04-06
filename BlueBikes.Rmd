@@ -90,7 +90,7 @@ station_ratios
 
 ```{r}
 get_googlemap(
-  "42.334885,-71.086294", zoom = 10, maptype = "roadmap", 
+  "42.334885,-71.086294", zoom = 12, maptype = "roadmap",
   style = c(feature = "poi", visibility = "off")
 ) %>%
   ggmap() +
@@ -104,8 +104,10 @@ users = bikes %>%
   filter(`birth year` != "NULL") %>%
   mutate(`birth year` = parse_integer(`birth year`))
 
-users %>%
-  filter(!(`birth year` == 1969 & gender == 0)) %>%
+real_users = users %>%
+  filter(!(`birth year` == 1969 & gender == 0))
+
+real_users %>%
   mutate(birth_decade = trunc(`birth year` / 10) * 10) %>%
   group_by(birth_decade) %>%
   summarize(count = n()) %>%
@@ -113,8 +115,7 @@ users %>%
 ```
 
 ```{r}
-users %>%
-  filter(!(`birth year` == 1969 & gender == 0)) %>%
+real_users %>%
   group_by(`birth year`) %>%
   summarize(count = n())
 ```
