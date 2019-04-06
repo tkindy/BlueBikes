@@ -100,7 +100,11 @@ get_googlemap(
 ```
 
 ```{r}
-bikes %>%
+users = bikes %>%
+  filter(`birth year` != "NULL") %>%
+  mutate(`birth year` = parse_integer(`birth year`))
+
+users %>%
   filter(!(`birth year` == 1969 & gender == 0)) %>%
   mutate(birth_decade = trunc(`birth year` / 10) * 10) %>%
   group_by(birth_decade) %>%
@@ -109,7 +113,7 @@ bikes %>%
 ```
 
 ```{r}
-bikes %>%
+users %>%
   filter(!(`birth year` == 1969 & gender == 0)) %>%
   group_by(`birth year`) %>%
   summarize(count = n())
