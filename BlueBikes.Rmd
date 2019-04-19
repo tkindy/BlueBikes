@@ -111,7 +111,7 @@ morning_bikes = bikes_sliced %>%
   filter(starthour < 10)
 
 get_googlemap(
-  "42.345,-71.075", zoom = 13, maptype = "roadmap",
+  "42.345,-71.075", zoom = 12, maptype = "roadmap",
   style = c(feature = "poi", visibility = "off")
 ) %>%
   ggmap() +
@@ -126,12 +126,12 @@ evening_bikes = bikes_sliced %>%
   filter(starthour < 19)
 
 get_googlemap(
-  "42.345,-71.075", zoom = 13, maptype = "roadmap",
+  "42.345,-71.075", zoom = 12, maptype = "roadmap",
   style = c(feature = "poi", visibility = "off")
 ) %>%
   ggmap() +
-  geom_point(aes(x = `start station longitude`, y = `start station latitude`), alpha = 0.04, color="red", data = evening_bikes, position = position_jitter(width = 0.006, height = 0.006)) +
-  geom_point(aes(x = `end station longitude`, y = `end station latitude`), alpha = 0.03, color="blue", data = evening_bikes, position = position_jitter(width = 0.006, height = 0.006)) +
+  geom_point(aes(x = `start station longitude`, y = `start station latitude`), alpha = 0.02, color="red", data = evening_bikes, position = position_jitter(width = 0.006, height = 0.006)) +
+  geom_point(aes(x = `end station longitude`, y = `end station latitude`), alpha = 0.015, color="blue", data = evening_bikes, position = position_jitter(width = 0.006, height = 0.006)) +
   theme_void()
 ```
 
@@ -161,8 +161,10 @@ real_users %>%
 ```
 
 ```{r}
+real_users <- real_users %>%
+  filter(`birth year` >= 1920)
+
 real_users %>%
-  filter(`birth year` >= 1920) %>%
   ggplot() +
   geom_bar(aes(x = `birth year`)) +
   labs(
@@ -170,4 +172,47 @@ real_users %>%
     x = "Birth Year",
     y = "Number of Users"
   )
+```
+
+```{r}
+genders_start = real_users %>%
+  group_by(`start station id`, gender) %>%
+  summarize(count = n()) %>%
+  rename(station_id = `start station id`)
+genders_end = real_users %>%
+  group_by(`end station id`, gender) %>%
+  summarize(count = n()) %>%
+  rename(station_id = `end station id`)
+genders = genders_start %>%
+  inner_join(genders_end, by = c("station_id", "gender"), suffix = c("_start", "_end")) %>%
+  select(station_id, gender, count_start, count_end) %>%
+  mutate(trips = count_start + count_end) %>%
+  select(station_id, gender, trips) %>%
+  arrange(station_id)
+
+install.packages("reshape")
+library("reshape")
+genders <- cast(genders, station_id~gender)
+genders
+```
+
+```{r}
+ages_start = real_users %>%
+  mutate(birth_decade = trunc(`birth year` / 10) * 10) %>%
+  group_by(`start station id`, birth_decade) %>%
+  summarize(count = n()) %>%
+  dplyr::rename(station_id = `start station id`)
+ages_end = real_users %>%
+  mutate(birth_decade = trunc(`birth year` / 10) * 10) %>%
+  group_by(`end station id`, birth_decade) %>%
+  summarize(count = n()) %>%
+  dplyr::rename(station_id = `end station id`)
+ages = ages_start %>%
+  inner_join(ages_end, by = c("station_id", "birth_decade"), suffix = c("_start", "_end")) %>%
+  select(station_id, birth_decade, count_start, count_end) %>%
+  mutate(trips = count_start + count_end) %>%
+  select(station_id, birth_decade, trips) %>%
+  arrange(station_id)
+ages <- cast(ages, station_id~birth_decade)
+ages
 ```
