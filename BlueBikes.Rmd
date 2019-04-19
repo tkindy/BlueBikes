@@ -40,9 +40,9 @@ Genders:
   
 ```{r}
 starts = bikes %>%
-  select(station_id = `start station id`, lat = `start station latitude`, lon = `start station longitude`)
+  select(station_id = `start station id`, name = `start station name`, lat = `start station latitude`, lon = `start station longitude`)
 ends = bikes %>%
-  select(station_id = `end station id`, lat = `end station latitude`, lon = `end station longitude`)
+  select(station_id = `end station id`, name = `end station name`, lat = `end station latitude`, lon = `end station longitude`)
 stations = bind_rows(starts, ends) %>%
   distinct(station_id, .keep_all = TRUE) %>%
   arrange(station_id)
