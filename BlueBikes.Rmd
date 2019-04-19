@@ -11,7 +11,7 @@ library(tidyverse)
 library(lubridate)
 bikes <- read_csv("data/bluebikes.csv") %>%
   mutate(
-    startday = date(starttime), 
+    startday = date(starttime),
     starthour = hour(starttime),
     stopday = date(stoptime),
     stophour = hour(stoptime)
@@ -37,7 +37,7 @@ Genders:
   0 - unknown
   1 - male
   2 - female
-  
+
 ```{r}
 starts = bikes %>%
   select(station_id = `start station id`, name = `start station name`, lat = `start station latitude`, lon = `start station longitude`)
@@ -215,4 +215,41 @@ ages = ages_start %>%
   arrange(station_id)
 ages <- cast(ages, station_id~birth_decade)
 ages
+bucket_date <- function(time) {
+  bucket <- floor_date(time, unit = "30 minutes")
+  year(bucket) <- 1900
+  month(bucket) <- 1
+  day(bucket) <- 1
+  bucket
+}
+
+time_buckets = bikes %>%
+  mutate(
+    start_bucket = bucket_date(starttime),
+    end_bucket = bucket_date(stoptime)
+  ) %>%
+  select(`start station id`, `end station id`, start_bucket, end_bucket)
+```
+
+```{r}
+start_buckets = time_buckets %>%
+  group_by(`start station id`, start_bucket) %>%
+  summarize(count = n())
+
+end_buckets = time_buckets %>%
+  group_by(`end station id`, end_bucket) %>%
+  summarize(count = n())
+
+start_buckets
+```
+
+```{r}
+grouped_buckets = start_buckets %>%
+  inner_join(end_buckets, by = c("start station id" = "end station id", "start_bucket" = "end_bucket")) %>%
+  select(station_id = `start station id`, bucket = start_bucket, start_count = count.x, end_count = count.y)
+```
+
+```{r}
+grouped_buckets %>%
+  arrange(-end_count)
 ```
