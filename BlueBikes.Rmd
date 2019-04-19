@@ -197,7 +197,6 @@ genders = genders_start %>%
   select(station_id, gender, trips) %>%
   arrange(station_id)
 
-install.packages("reshape")
 library("reshape")
 genders <- cast(genders, station_id~gender)
 genders
@@ -260,8 +259,26 @@ grouped_buckets = start_buckets %>%
 ```
 
 ```{r}
-grouped_buckets %>%
-  arrange(-end_count)
+sep_buckets = grouped_buckets %>%
+  split(.$station_id)
+```
+
+```{r}
+graphs = sep_buckets %>%
+  map(function(bucket_tbl) {
+    id = (bucket_tbl %>% select(station_id) %>% head(1))[[1]]
+    bucket_tbl %>%
+      ggplot() +
+      geom_line(aes(x = bucket, y = start_count, color = "red")) +
+      geom_line(aes(x = bucket, y = end_count, color = "blue")) +
+      labs(title = str_interp("${id}")) +
+      theme(legend.position = "none")
+  })
+```
+
+```{r}
+library(plyr)
+splat(grid.arrange)(graphs[0:10], ncol = 5)
 ```
 
 ```{r}
