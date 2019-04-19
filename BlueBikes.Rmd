@@ -53,11 +53,11 @@ stations
 start_trips = bikes %>%
   group_by(`start station id`, usertype) %>%
   summarize(count = n()) %>%
-  rename(station_id = `start station id`)
+  dplyr::rename(station_id = `start station id`)
 end_trips = bikes %>%
   group_by(`end station id`, usertype) %>%
   summarize(count = n()) %>%
-  rename(station_id = `end station id`)
+  dplyr::rename(station_id = `end station id`)
 usertype_trips = bind_rows(start_trips, end_trips) %>%
   group_by(station_id, usertype) %>%
   summarize(count = sum(count))
@@ -178,11 +178,11 @@ real_users %>%
 genders_start = real_users %>%
   group_by(`start station id`, gender) %>%
   summarize(count = n()) %>%
-  rename(station_id = `start station id`)
+  dplyr::rename(station_id = `start station id`)
 genders_end = real_users %>%
   group_by(`end station id`, gender) %>%
   summarize(count = n()) %>%
-  rename(station_id = `end station id`)
+  dplyr::rename(station_id = `end station id`)
 genders = genders_start %>%
   inner_join(genders_end, by = c("station_id", "gender"), suffix = c("_start", "_end")) %>%
   select(station_id, gender, count_start, count_end) %>%
@@ -261,10 +261,25 @@ grouped_buckets %>%
 trip_durations = real_users %>%
   mutate(trip_duration = difftime(`stoptime`, `starttime`)) %>%
   filter(trip_duration < 90) %>%
-  group_by(`start station id`, `end station id`) %>%
+  group_by(`start station id`, `end station id`, `start station latitude`,`end station latitude`,`start station longitude`,`end station longitude`) %>%
   summarize(trip_duration = mean(`trip_duration`), count = n()) %>%
-  arrange(-trip_duration) %>%
-  filter(count > 100)
-trip_durations
+  filter(count > 100) %>%
+  arrange(-count)
+
+trip_durations_top = trip_durations %>%
+  filter(count > 100) 
+
+library("RColorBrewer")
+myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
+sc <- scale_colour_gradientn(colours = myPalette(100), limits=c(1, 45))
+
+get_googlemap(
+  "42.354,-71.076", zoom = 13, maptype = "roadmap",
+  style = c(feature = "poi", visibility = "off")
+) %>%
+  ggmap() +
+  geom_segment(data=trip_durations_top,aes(x = `start station longitude`, y = `start station latitude`, xend = `end station longitude`, yend = `end station latitude`, color = as.numeric(`trip_duration`)), alpha=0.5) +
+  sc
+
 ```
 
