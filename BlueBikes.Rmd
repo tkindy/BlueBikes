@@ -215,6 +215,9 @@ ages = ages_start %>%
   arrange(station_id)
 ages <- cast(ages, station_id~birth_decade)
 ages
+```
+
+```{r}
 bucket_date <- function(time) {
   bucket <- floor_date(time, unit = "30 minutes")
   year(bucket) <- 1900
@@ -253,3 +256,15 @@ grouped_buckets = start_buckets %>%
 grouped_buckets %>%
   arrange(-end_count)
 ```
+
+```{r}
+trip_durations = real_users %>%
+  mutate(trip_duration = difftime(`stoptime`, `starttime`)) %>%
+  filter(trip_duration < 90) %>%
+  group_by(`start station id`, `end station id`) %>%
+  summarize(trip_duration = mean(`trip_duration`), count = n()) %>%
+  arrange(-trip_duration) %>%
+  filter(count > 100)
+trip_durations
+```
+
