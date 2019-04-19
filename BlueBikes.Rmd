@@ -117,13 +117,34 @@ get_googlemap(
 ```
 
 ```{r}
+bikes_sliced = bikes[c(1:50000),]
+
+morning_bikes = bikes_sliced %>%
+  filter(starthour > 6) %>%
+  filter(starthour < 10)
+
 get_googlemap(
   "42.345,-71.075", zoom = 13, maptype = "roadmap",
   style = c(feature = "poi", visibility = "off")
 ) %>%
   ggmap() +
-  geom_point(aes(x = `start station longitude`, y = `start station latitude`, color="red"), alpha = 0.2, data = bikes) + geom_jitter(width = 5, height = 5) +
-  labs(size = "Customer Trips / Total")
+  geom_point(aes(x = `start station longitude`, y = `start station latitude`), alpha = 0.04, color="red", data = morning_bikes, position = position_jitter(width = 0.006, height = 0.006)) +
+  geom_point(aes(x = `end station longitude`, y = `end station latitude`), alpha = 0.03, color="blue", data = morning_bikes, position = position_jitter(width = 0.006, height = 0.006)) +
+  theme_void()
+```
+
+```{r}
+evening_bikes = bikes_sliced %>%
+  filter(starthour > 15) %>%
+  filter(starthour < 19)
+
+get_googlemap(
+  "42.345,-71.075", zoom = 13, maptype = "roadmap",
+  style = c(feature = "poi", visibility = "off")
+) %>%
+  ggmap() +
+  geom_point(aes(x = `start station longitude`, y = `start station latitude`), alpha = 0.04, color="red", data = evening_bikes, position = position_jitter(width = 0.006, height = 0.006)) +
+  geom_point(aes(x = `end station longitude`, y = `end station latitude`), alpha = 0.03, color="blue", data = evening_bikes, position = position_jitter(width = 0.006, height = 0.006)) +
   theme_void()
 ```
 
