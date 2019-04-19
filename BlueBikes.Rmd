@@ -215,6 +215,9 @@ ages = ages_start %>%
   arrange(station_id)
 ages <- cast(ages, station_id~birth_decade)
 ages
+```
+
+```{r}
 bucket_date <- function(time) {
   bucket <- floor_date(time, unit = "30 minutes")
   year(bucket) <- 1900
