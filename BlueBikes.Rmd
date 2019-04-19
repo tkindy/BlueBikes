@@ -88,9 +88,15 @@ get_googlemap(
 ) %>%
   ggmap() +
   geom_point(aes(x = lon, y = lat, size = ratio), alpha = 0.4, data = station_ratios) +
-  labs(size = "Customer Trips / Total")
-  theme_void()
+  labs(size = "Customer Trips / Total") +
+  scale_size(range = c(0, 5))
 ```
+
+This first visualization shows all of the Bluebike stations, and the ratio of their users who are customers vs. subscribers. Customers are pay-per-ride, single-use riders, while subscribers are annual members who have a profile and ride freely within their subscription. We can largely attribute customers to tourists, as it is very unlikely for a tourist of Boston to buy a subscription just to use Bluebikes a few times. By extension, we attribute subscribers to residents, or locals. That is not to say that customers cannot also be residents - the interpretation depends on the location of the bike.
+
+We see that in the Downtown and Back Bay neighborhoods, there is a higher ratio of customers to subscribers. We believe this indicates that tourists prefer biking around these areas of Boston, when they visit. On the flip side, we see that the MIT area has a very small proportion of customers to subscribers, likely evidence that users of those stations are mostly students or other residents. Curiously, we also observe that there is a large ratio of customers to subscribers in the southern Mattapan area. While we could interpret this as a fringe tourist hotspot, a more likely explanation is that residents in that area do not use Bluebikes enough to purchase an annual subscription, and would rather pay per ride.
+
+Below is a zoomed in version of the same plot. Our interpretation of customers as tourists is largely validated by a few stations, with a particularly high ratio, each near common tourist destinations: (1) Museum of Science, (2) Airport, (3) Boston Common.
 
 ```{r}
 get_googlemap(
@@ -99,9 +105,10 @@ get_googlemap(
 ) %>%
   ggmap() +
   geom_point(aes(x = lon, y = lat, size = ratio), alpha = 0.4, data = station_ratios) +
-  labs(size = "Customer Trips / Total")
-  theme_void()
+  labs(size = "Customer Trips / Total") +
+  scale_size(range = c(0, 5))
 ```
+
 
 ```{r}
 bikes_sliced = bikes[c(1:50000),]
@@ -268,7 +275,9 @@ trip_durations = real_users %>%
 
 trip_durations_top = trip_durations %>%
   filter(count > 100) 
+```
 
+```{r}
 library("RColorBrewer")
 myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
 sc <- scale_colour_gradientn(colours = myPalette(100), limits=c(1, 45))
@@ -278,7 +287,7 @@ get_googlemap(
   style = c(feature = "poi", visibility = "off")
 ) %>%
   ggmap() +
-  geom_segment(data=trip_durations_top,aes(x = `start station longitude`, y = `start station latitude`, xend = `end station longitude`, yend = `end station latitude`, color = as.numeric(`trip_duration`)), alpha=0.5) +
+  geom_segment(data=trip_durations_top,aes(x = `start station longitude`, y = `start station latitude`, xend = `end station longitude`, yend = `end station latitude`, color = as.numeric(`trip_duration`), alpha=`count`)) +
   sc
 
 ```
