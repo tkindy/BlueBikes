@@ -1,3 +1,4 @@
+
 ---
 title: "BlueBikes"
 author: "Tyler Kindy"
@@ -8,7 +9,6 @@ output: pdf_document
 ```{r}
 library(tidyverse)
 library(lubridate)
-
 bikes <- read_csv("data/bluebikes.csv") %>%
   mutate(
     startday = date(starttime), 
@@ -16,7 +16,6 @@ bikes <- read_csv("data/bluebikes.csv") %>%
     stopday = date(stoptime),
     stophour = hour(stoptime)
   )
-
 bikes
 ```
 
@@ -31,7 +30,6 @@ bikes %>%
 genders = bikes %>%
   group_by(usertype, gender) %>%
   summarize(count = n())
-
 genders
 ```
 
@@ -43,14 +41,11 @@ Genders:
 ```{r}
 starts = bikes %>%
   select(station_id = `start station id`, lat = `start station latitude`, lon = `start station longitude`)
-
 ends = bikes %>%
   select(station_id = `end station id`, lat = `end station latitude`, lon = `end station longitude`)
-
 stations = bind_rows(starts, ends) %>%
   distinct(station_id, .keep_all = TRUE) %>%
   arrange(station_id)
-
 stations
 ```
 
@@ -59,38 +54,30 @@ start_trips = bikes %>%
   group_by(`start station id`, usertype) %>%
   summarize(count = n()) %>%
   rename(station_id = `start station id`)
-
 end_trips = bikes %>%
   group_by(`end station id`, usertype) %>%
   summarize(count = n()) %>%
   rename(station_id = `end station id`)
-
 usertype_trips = bind_rows(start_trips, end_trips) %>%
   group_by(station_id, usertype) %>%
   summarize(count = sum(count))
-
 cust_trips = usertype_trips %>%
   filter(usertype == "Customer")
-
 sub_trips = usertype_trips %>%
   filter(usertype == "Subscriber")
-
 usertype_ratios = cust_trips %>%
   inner_join(sub_trips, by = c("station_id"), suffix = c("_cust", "_sub")) %>%
   select(station_id, count_cust, count_sub) %>%
   mutate(ratio = count_cust / (count_cust + count_sub)) %>%
   select(station_id, ratio)
-
 usertype_ratios %>%
   arrange(station_id)
 ```
 
 ```{r}
 library(ggmap)
-
 station_ratios = stations %>%
   inner_join(usertype_ratios)
-
 station_ratios
 ```
 
@@ -149,13 +136,10 @@ get_googlemap(
 ```
 
 ```{r}
-users = bikes %>%
+real_users = bikes %>%
   filter(`birth year` != "NULL") %>%
-  mutate(`birth year` = parse_integer(`birth year`))
-
-real_users = users %>%
+  mutate(`birth year` = parse_integer(`birth year`)) %>%
   filter(!(`birth year` == 1969 & gender == 0))
-
 real_users %>%
   mutate(birth_decade = trunc(`birth year` / 10) * 10) %>%
   group_by(birth_decade) %>%
@@ -174,4 +158,16 @@ real_users %>%
 real_users %>%
   ggplot() +
   geom_bar(aes(x = `birth year`))
+```
+
+```{r}
+real_users %>%
+  filter(`birth year` >= 1920) %>%
+  ggplot() +
+  geom_bar(aes(x = `birth year`)) +
+  labs(
+    title = "Birth Year of Users Born After 1920",
+    x = "Birth Year",
+    y = "Number of Users"
+  )
 ```
