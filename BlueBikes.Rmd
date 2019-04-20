@@ -5,6 +5,11 @@ date: "April 20, 2019"
 output: html_document
 ---
 
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+                      warning=FALSE, message=FALSE)
+```
+
 For our project, we dove into the Bluebikes (formerly Hubway) bike sharing data available on https://data.boston.gov to create several interesting visualizations.
 
 ## Setup
@@ -444,7 +449,7 @@ trip_durations %>%
 trip_durations = trip_durations %>%
   filter(`trip_duration` < 90) %>%
   filter(`count` > 150) %>%
-  arrange(-count)
+  arrange(count)
 ```
 
 Already, this table looks much more accurate. One interesting note is that the top 12 itineraries by usage involve only six distinct stations: 53, 67, 68, 80, 178, and 179, all of which are on, or minutes away from, MIT's campus. Now we are able to visualize this data:
