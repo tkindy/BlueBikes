@@ -201,7 +201,7 @@ real_users %>%
   )
 ```
 
-## Visualization 4: Station Demographics
+## Visualization 3: Station Demographics
 
 ```{r}
 genders_start = real_users %>%
@@ -289,7 +289,7 @@ get_googlemap(
   theme_void()
 ```
 
-## Visualization 3: Station Activity
+## Visualization 4: Station Activity
 
 ```{r}
 bucket_date <- function(time) {
@@ -352,7 +352,7 @@ max_y = max(
 )
 ```
 
-For our third visualization, we wanted to look at the network activity on a per-station basis. What times of day are active and inactive for each station in the network? This information would be useful to Bluebikes itself. Stations with high demand during a given time period could run out of bikes during the rush hour. However, if another station is a hot destination point during that same time period, there is an opportunity for some real-time network rebalancing by moving the bikes to stations where they're needed.
+For our fourth visualization, we wanted to look at the network activity on a per-station basis. What times of day are active and inactive for each station in the network? This information would be useful to Bluebikes itself. Stations with high demand during a given time period could run out of bikes during the rush hour. However, if another station is a hot destination point during that same time period, there is an opportunity for some real-time network rebalancing by moving the bikes to stations where they're needed.
 
 This information could also be of interest to Bluebikes riders. These statistics could be used to give users an idea of when rush hour is for their favorite or home station, enabling them to plan further ahead for their commute or other ride.
 
@@ -389,7 +389,6 @@ With that explanation out of the way, there are many interesting conclusions we 
 Many stations are less defined, however. For example, Beacon Street at Arlington Street has a small bidirectional morning commute which then steadily increases in traffic throughout the day until the end of the evening commute. This particular station is right by the Commons and the Public Gardens, so it would make sense that many people (especially in the summer) are interacting with this station.
 
 Overall, this visualization answered some questions for us about station traffic and could provide valuable insights to Bluebikes and its customers combined. It also raises some more interesting questions about how these stations are being used that other visualizations could shed more light on, such as how the traffic at one station might affect the traffic of the stations around it.
-
 
 ## Visualization 5: Trip Frequencies and Durations
 
