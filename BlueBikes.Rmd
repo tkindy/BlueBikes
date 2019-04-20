@@ -1,7 +1,7 @@
 ---
 title: "BlueBikes"
 author: "Charles Zheng & Tyler Kindy"
-date: "March 22, 2019"
+date: "April 20, 2019"
 output: html_document
 ---
 
@@ -465,4 +465,12 @@ Finally, the map shows the relative connectedness of bike paths throughout Bosto
 ## Closing remarks
 
 The goal of this project was to answer the broad question, "How do Bostonians use our municipal bike-sharing system, Bluebikes?". To this end, we created 5 visualizations each analyzing a different area of the publicly available Bluebike usage data. Along the way, we took pit stops to make inferences about, and clean up, the data that we were given. We believe each visualization tells an interesting story, whether it be where the busiest stations are during commute rush hours, or how the usage at a station changes over the course of a 24-hour period. Taken together, these visualizations paint a comprehensive picture of the way Bostonians (as well as Cantabrigians, Brookliners, and Somervillians) use Bluebikes.
+
+### Data source
+
+All of the data used in this project can be found at https://s3.amazonaws.com/hubway-data/index.html.
+
+### Group roles
+
+All of the work presented in this project was split equally among all group members, both in the type of work (data analysis, R code, text writeup) as well as the amount of work. 
 
