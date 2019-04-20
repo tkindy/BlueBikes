@@ -51,6 +51,7 @@ starts = bikes %>%
 ends = bikes %>%
   select(station_id = `end station id`, name = `end station name`, lat = `end station latitude`, lon = `end station longitude`)
 stations = bind_rows(starts, ends) %>%
+  filter(!grepl("TEMPORARY WINTER LOCATION", name)) %>%
   distinct(station_id, .keep_all = TRUE) %>%
   arrange(station_id)
 stations
@@ -261,10 +262,20 @@ start_buckets
 grouped_buckets = start_buckets %>%
   inner_join(end_buckets, by = c("start station id" = "end station id", "start_bucket" = "end_bucket")) %>%
   select(station_id = `start station id`, bucket = start_bucket, start_count = count.x, end_count = count.y)
+
+grouped_buckets
 ```
 
 ```{r}
+keepers = grouped_buckets %>%
+  group_by(station_id) %>%
+  summarize(total_count = sum(start_count) + sum(end_count)) %>%
+  top_n(40, total_count)
+keepers %>%
+  arrange(-total_count)
+
 sep_buckets = grouped_buckets %>%
+  semi_join(keepers) %>%
   split(.$station_id)
 ```
 
@@ -279,25 +290,47 @@ max_y = max(
 )
 ```
 
+## Visualization 3: Station Activity
+
+For our third visualization, we wanted to look at the network activity on a per-station basis. What times of day are active and inactive for each station in the network? This information would be useful to Bluebikes itself. Stations with high demand during a given time period could run out of bikes during the rush hour. However, if another station is a hot destination point during that same time period, there is an opportunity for some real-time network rebalancing by moving the bikes to stations where they're needed.
+
+This information could also be of interest to Bluebikes riders. These statistics could be used to give users an idea of when rush hour is for their favorite or home station, enabling them to plan further ahead for their commute or other ride.
+
 ```{r, fig.width=10, fig.height=20}
 
 graphs = sep_buckets %>%
   map(function(bucket_tbl) {
     id = (bucket_tbl %>% select(station_id) %>% head(1))[[1]]
+    name = (bucket_tbl %>% inner_join(stations) %>% select(name) %>% head(1))[[2]]
     bucket_tbl %>%
       ggplot() +
       geom_line(aes(x = bucket, y = start_count, color = "red")) +
       geom_line(aes(x = bucket, y = end_count, color = "blue")) +
       # coord_cartesian(ylim = c(0, max_y)) +
-      labs(title = str_interp("${id}")) +
-      theme_void() +
-      theme(plot.title = element_text(size = 10, hjust = 0.5), legend.position = "none")
+      # labs(title = str_interp("${id}")) +
+      labs(title = name) +
+      # theme_void() +
+      theme(
+        plot.title = element_text(size = 10, hjust = 0.5), 
+        legend.position = "none",
+        axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()
+      )
   })
 
-splat(grid.arrange)(graphs, ncol = 10)
+splat(grid.arrange)(graphs, ncol = 2)
 ```
 
-```{r}
+Before analyzing this visualization, it's important to understand what it's displaying. First, each graph contains data for a typical day in 2018. Each X-axis represents the 24 hours in a day. However, the graphs cannot be compared to one another directly since they're each plotted with their own Y-axis corresponding to their own average data. These graphs should be viewed as a way of seeing the daily trend at a particular station. For clarity, we have chosen to show the 40 most active stations.
+
+With that explanation out of the way, there are many interesting conclusions we can draw from this visualization. Many of the stations conform to a typical rush hour schedule, such as MIT Stata Center (with an outward morning commute and inward evening commute) and Nashua Street at Red Auerbach Way (with the opposite cycle). Some stations, like Back Bay, are clearly hubs of transit where many people are leaving from and coming to at both rush hours.
+
+Many stations are less defined, however. For example, Beacon Street at Arlington Street has a small bidirectional morning commute which then steadily increases in traffic throughout the day until the end of the evening commute. This particular station is right by the Commons and the Public Gardens, so it would make sense that many people (especially in the summer) are interacting with this station.
+
+Overall, this visualization answered some questions for us about station traffic and could provide valuable insights to Bluebikes and its customers combined. It also raises some more interesting questions about how these stations are being used that other visualizations could shed more light on, such as how the traffic at one station might affect the traffic of the stations around it.
+
+```
 trip_durations = real_users %>%
   mutate(trip_duration = difftime(`stoptime`, `starttime`)) %>%
   filter(trip_duration < 90) %>%
@@ -310,7 +343,7 @@ trip_durations_top = trip_durations %>%
   filter(count > 100) 
 ```
 
-```{r}
+```
 myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
 sc <- scale_colour_gradientn(colours = myPalette(100), limits=c(1, 45))
 
