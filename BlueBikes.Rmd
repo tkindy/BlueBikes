@@ -59,6 +59,10 @@ stations = bind_rows(starts, ends) %>%
 stations
 ```
 
+The next step in our data processing was to create a new table of all of the unique stations, and fields associated with them (id, name, latitude, and longitude). We found that some stations had multiple names - often, the text "TEMPORARY WINTER LOCATION" was suffixed, which we felt was pretty self-explanatory. In no scenario did a station with many names encumber our data analysis; it merely introduced some quirkiness into our high-level interpretation of stations.
+
+## Visualization 1: Tourist Hotspots
+
 ```{r}
 start_trips = bikes %>%
   group_by(`start station id`, usertype) %>%
@@ -83,8 +87,6 @@ usertype_ratios = cust_trips %>%
 usertype_ratios %>%
   arrange(station_id)
 ```
-
-## Visualization 1: Tourist Hotspots
 
 ```{r}
 station_ratios = stations %>%
