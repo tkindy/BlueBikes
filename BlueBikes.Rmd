@@ -2,8 +2,10 @@
 title: "BlueBikes"
 author: "Charles Zheng & Tyler Kindy"
 date: "March 22, 2019"
-output: pdf_document
+output: html_document
 ---
+
+## Setup
 
 ```{r}
 library(plyr)
@@ -83,6 +85,8 @@ usertype_ratios %>%
   arrange(station_id)
 ```
 
+## Visualization 1: Tourist Hotspots
+
 ```{r}
 station_ratios = stations %>%
   inner_join(usertype_ratios)
@@ -117,6 +121,7 @@ get_googlemap(
   scale_size(range = c(0, 5))
 ```
 
+## Visualization 2: Morning and Evening Commutes
 
 ```{r}
 bikes_sliced = bikes[c(1:50000),]
@@ -126,14 +131,21 @@ morning_bikes = bikes_sliced %>%
   filter(starthour < 10)
 
 get_googlemap(
-  "42.345,-71.075", zoom = 12, maptype = "roadmap",
+  "42.345,-71.075", zoom = 13, maptype = "roadmap",
   style = c(feature = "poi", visibility = "off")
 ) %>%
   ggmap() +
-  geom_point(aes(x = `start station longitude`, y = `start station latitude`), alpha = 0.04, color="red", data = morning_bikes, position = position_jitter(width = 0.006, height = 0.006)) +
-  geom_point(aes(x = `end station longitude`, y = `end station latitude`), alpha = 0.03, color="blue", data = morning_bikes, position = position_jitter(width = 0.006, height = 0.006)) +
-  theme_void()
+  geom_point(aes(x = `start station longitude`, y = `start station latitude`), alpha = 0.04, color="red", data = morning_bikes, position = position_jitter(width = 0.005, height = 0.005)) +
+  geom_point(aes(x = `end station longitude`, y = `end station latitude`), alpha = 0.03, color="blue", data = morning_bikes, position = position_jitter(width = 0.005, height = 0.005)) +
+  theme_void() + 
+  labs(title = "Morning commute")
 ```
+
+Our second visualization is a map of the morning and evening commutes, color-coded by start station and end station. The map above shows the morning commute, which we defined as being from 7am to 9:59am. For both maps, red dots represent start, or origin stations, and blue dots represent end, or destination stations. One trip thus creates two dots: a red dot at the origin and a blue dot at the destination. We used a jitter function to paint a more accurate picture of the neighborhood that each station serves, since most Bluebike users will walk from their terminus station to their actual destination. 
+
+By segregating our data into these discrete, and culturally significant time ranges, we reveal extra nuances in the data. Above, we see that a large proportion of morning commutes originate in the West End/North Station, South Boston, Charlestown, Jamaica Plain, and Central Cambridge areas. A large proportion of morning commutes terminate in the South Station/Seaport, Kendall/MIT, Harvard, and Longwood areas. Some neighborhoods, such as the South End and Back Bay, appear to be mixed use. This data creates a profile of which neighborhoods are largely residential (red dots above), and which are commercial/business (blue dots), and this profile greatly matches our perceived notions of Boston neighborhoods, as long-time residents of Boston. The one exception to this is North Station, which we interpret as commuters using Bluebikes as a secondary mode of transit, after having taken the subway or commuter rail into North Station. 
+
+While the proportion of color tells us the profile of the neighborhood (residential vs commercial), the intensity of color tells us the popularity of Bluebikes in a particular neighborhood, measured by the number of trips taken. Through this lens, we infer that the most popular Bluebike users are located in Kendall/MIT, North Station, and South Station/Downtown Crossing.
 
 ```{r}
 evening_bikes = bikes_sliced %>%
@@ -141,14 +153,17 @@ evening_bikes = bikes_sliced %>%
   filter(starthour < 19)
 
 get_googlemap(
-  "42.345,-71.075", zoom = 12, maptype = "roadmap",
+  "42.345,-71.075", zoom = 13, maptype = "roadmap",
   style = c(feature = "poi", visibility = "off")
 ) %>%
   ggmap() +
-  geom_point(aes(x = `start station longitude`, y = `start station latitude`), alpha = 0.02, color="red", data = evening_bikes, position = position_jitter(width = 0.006, height = 0.006)) +
-  geom_point(aes(x = `end station longitude`, y = `end station latitude`), alpha = 0.015, color="blue", data = evening_bikes, position = position_jitter(width = 0.006, height = 0.006)) +
-  theme_void()
+  geom_point(aes(x = `start station longitude`, y = `start station latitude`), alpha = 0.04, color="red", data = evening_bikes, position = position_jitter(width = 0.005, height = 0.005)) +
+  geom_point(aes(x = `end station longitude`, y = `end station latitude`), alpha = 0.03, color="blue", data = evening_bikes, position = position_jitter(width = 0.005, height = 0.005)) +
+  theme_void() +
+  labs(title = "Evening commute")
 ```
+
+As expected, the evening commute map tells the inverse story of the morning commute. Here we define the evening commute to be from 4pm-6:59pm. The same color coding is used, but here, we interpret blue dots as residential and red dots as commercial/business. When comparing these two commute maps side-by-side, they appear to be nearly perfect opposites of each other, meaning that blue dots in one correspond to red dots in the other. This observation validates our time range definitions, and further strengthens our profile of the neighborhoods of Boston. 
 
 ```{r}
 real_users = bikes %>%
@@ -161,6 +176,10 @@ real_users %>%
   summarize(count = n()) %>%
   arrange(-count)
 ```
+
+At this point, we noticed several anomalies and outliers in the data set, specifically around birth year. Firstly, a massive amount of rows claimed 1969 as their birth year, and a large proportion of 1969s claimed 0 as their gender (which we previously determined meant Unknown Gender). We hypothesize that these rows had incomplete user profiles, and the Bluebike server defaulted to 1969, which is the Unix epoch time adjusted to Eastern Standard Time. We removed any such row from consideration.
+
+Secondly, a non-trivial number of rows had birth years earlier than 1939, indicating that the Bluebike rider was well beyond their 80s. Some rows were outright false, claiming birth years in the 19th century. If we were to continue with any accurate demographic analysis of our data, we had to first clean up our data set to remove what we perceived were incorrect birth years. Perhaps giving too much benefit of the doubt, we filtered out all rows claiming a birth year earlier than 1920. While rare, we believe that nonagenarians can be fully capable of riding a Blue Bike!
 
 ```{r}
 real_users %>%
@@ -378,29 +397,80 @@ Many stations are less defined, however. For example, Beacon Street at Arlington
 
 Overall, this visualization answered some questions for us about station traffic and could provide valuable insights to Bluebikes and its customers combined. It also raises some more interesting questions about how these stations are being used that other visualizations could shed more light on, such as how the traffic at one station might affect the traffic of the stations around it.
 
-```
+
+## Visualization 5: Trip Frequencies and Durations
+
+```{r}
 trip_durations = real_users %>%
   mutate(trip_duration = difftime(`stoptime`, `starttime`)) %>%
-  filter(trip_duration < 90) %>%
   group_by(`start station id`, `end station id`, `start station latitude`,`end station latitude`,`start station longitude`,`end station longitude`) %>%
   summarize(trip_duration = mean(`trip_duration`), count = n()) %>%
-  filter(count > 100) %>%
+  arrange(-trip_duration)
+
+trip_durations
+```
+
+Finally, our last visualization examines the average trip duration for each unique pair of start and end station, and plots these links on a map. We first calculate trip duration from the start and end time columns in our data, and group by each unique pair of start and end station. When doing this, we immediately saw some extreme outliers in the data. For example, a trip starting at station id 10 (B.U. Central) and ending at station id 1 (18 Dorrance Warehouse) takes an average of almost 36 days to complete. A further inspection into this sorted table reveals that in fact, many of these outliers end at station id 1. So, either 18 Dorrance Warehouse contains some supernatural Bermuda Triangle-like energy, or, more likely, this station is for internal use only, and acts as a warehouse (as the name might imply). Further, Bluebikes does not advertise 18 Dorrance Warehouse as a station on their system map.
+
+We thus decide to ignore all trips with a duration of over 90 minutes (as a subscriber, your free trips are limited to 45 minutes anyways). Trips longer than 90 minutes are likely either relocation efforts, or maintainance efforts, neither of which we want to include in our analysis. We also filter out station pairs that do not have at least 150 trips between them, in order to get a larger sample size for our average trip duration.
+
+```{r}
+trip_durations %>%
+  filter(`trip_duration` < 200) %>%
+  ggplot() +
+  geom_bar(aes(x = as.numeric(`trip_duration`)), stat = "bin") +
+  labs(
+    title = "Average trip durations",
+    x = "Trip Duration",
+    y = "Number of Trips"
+  )
+
+trip_durations %>%
+  filter(`count` > 20) %>%
+  ggplot() + 
+  geom_bar(aes(x = `count`)) +
+  labs(title = "Distribution of trip counts")
+```
+
+```{r}
+trip_durations = trip_durations %>%
+  filter(`trip_duration` < 90) %>%
+  filter(`count` > 150) %>%
   arrange(-count)
-
-trip_durations_top = trip_durations %>%
-  filter(count > 100) 
 ```
 
-```
+Already, this table looks much more accurate. One interesting note is that the top 12 itineraries by usage involve only six distinct stations: 53, 67, 68, 80, 178, and 179, all of which are on, or minutes away from, MIT's campus. Now we are able to visualize this data:
+
+```{r}
 myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
 sc <- scale_colour_gradientn(colours = myPalette(100), limits=c(1, 45))
+
+get_googlemap(
+  "42.354,-71.076", zoom = 12, maptype = "roadmap",
+  style = c(feature = "poi", visibility = "off")
+) %>%
+  ggmap() +
+  geom_segment(data=trip_durations,aes(x = `start station longitude`, y = `start station latitude`, xend = `end station longitude`, yend = `end station latitude`, color = as.numeric(`trip_duration`), size=`count`), alpha=0.5) +
+  sc + scale_size(range=c(0.2, 1.5), guide=FALSE)
 
 get_googlemap(
   "42.354,-71.076", zoom = 13, maptype = "roadmap",
   style = c(feature = "poi", visibility = "off")
 ) %>%
   ggmap() +
-  geom_segment(data=trip_durations_top,aes(x = `start station longitude`, y = `start station latitude`, xend = `end station longitude`, yend = `end station latitude`, color = as.numeric(`trip_duration`), alpha=`count`)) +
-  sc
+  geom_segment(data=trip_durations,aes(x = `start station longitude`, y = `start station latitude`, xend = `end station longitude`, yend = `end station latitude`, color = as.numeric(`trip_duration`), size=`count`), alpha=0.5) +
+  sc + scale_size(range=c(0.2, 1.5), guide=FALSE)
 
 ```
+
+This visualization draws a line connecting every pair of stations with over 150 trips between them. The color of the line indicates the average trip duration between those stations, and the width of the line indicates the number of trips following that path. We see some trends on this map. First, station 67 (MIT Stata Center at Vassar St/Main St) appears to be the heart of the main arteries of the Bluebike system, as it acts as an endpoint for multiple thick blue lines. A large number of users bike to/from MIT, and their trips are often short in both distance and time. 
+
+Another trend is the clique-like nature of some neighborhoods. For example, East Boston is interconnected via a few stations, but very rarely do Bluebikes ever travel between East Boston and the rest of the Bluebike system. A similar, but less striking clique is present in Davis Square, in which the Davis T stop acts as the center of a spoke-like series of radial connections. In fact, this notion of a "center station" with many radially-outward extending spokes is seen in a few other stations: South Station, North Station, Porter Square, and Lechmere, all of which are T stops. This usage map hints that many Bostonians use Bluebikes as a secondary method of transportation, and as a way of connecting their subway ride to their ultimate destination. 
+
+Finally, the map shows the relative connectedness of bike paths throughout Boston, Cambridge, Brookline, and Somerville. For example, trips from Charlestown to Downtown Boston tend to take longer than other trips traveling a similar distance. 
+
+
+## Closing remarks
+
+The goal of this project was to answer the broad question, "How do Bostonians use our municipal bike-sharing system, Bluebikes?". To this end, we created 5 visualizations each analyzing a different area of the publicly available Bluebike usage data. Along the way, we took pit stops to make inferences about, and clean up, the data that we were given. We believe each visualization tells an interesting story, whether it be where the busiest stations are during commute rush hours, or how the usage at a station changes over the course of a 24-hour period. Taken together, these visualizations paint a comprehensive picture of the way Bostonians (as well as Cantabrigians, Brookliners, and Somervillians) use Bluebikes.
+
