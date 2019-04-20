@@ -99,7 +99,7 @@ get_googlemap(
   ggmap() +
   geom_point(aes(x = lon, y = lat, size = ratio), alpha = 0.4, data = station_ratios) +
   labs(size = "Customer Trips / Total") +
-  scale_size(range = c(0, 5))
+  scale_size(range = c(0, 8))
 ```
 
 This first visualization shows all of the Bluebike stations, and the ratio of their users who are customers vs. subscribers. Customers are pay-per-ride, single-use riders, while subscribers are annual members who have a profile and ride freely within their subscription. We can largely attribute customers to tourists, as it is very unlikely for a tourist of Boston to buy a subscription just to use Bluebikes a few times. By extension, we attribute subscribers to residents, or locals. That is not to say that customers cannot also be residents - the interpretation depends on the location of the bike.
@@ -116,7 +116,7 @@ get_googlemap(
   ggmap() +
   geom_point(aes(x = lon, y = lat, size = ratio), alpha = 0.4, data = station_ratios) +
   labs(size = "Customer Trips / Total") +
-  scale_size(range = c(0, 5))
+  scale_size(range = c(0, 8))
 ```
 
 ## Visualization 2: Morning and Evening Commutes
@@ -133,8 +133,8 @@ get_googlemap(
   style = c(feature = "poi", visibility = "off")
 ) %>%
   ggmap() +
-  geom_point(aes(x = `start station longitude`, y = `start station latitude`), alpha = 0.04, color="red", data = morning_bikes, position = position_jitter(width = 0.005, height = 0.005)) +
-  geom_point(aes(x = `end station longitude`, y = `end station latitude`), alpha = 0.03, color="blue", data = morning_bikes, position = position_jitter(width = 0.005, height = 0.005)) +
+  geom_point(aes(x = `start station longitude`, y = `start station latitude`), alpha = 0.06, color="red", data = morning_bikes, position = position_jitter(width = 0.005, height = 0.005)) +
+  geom_point(aes(x = `end station longitude`, y = `end station latitude`), alpha = 0.045, color="blue", data = morning_bikes, position = position_jitter(width = 0.005, height = 0.005)) +
   theme_void() + 
   labs(title = "Morning commute")
 ```
@@ -155,8 +155,8 @@ get_googlemap(
   style = c(feature = "poi", visibility = "off")
 ) %>%
   ggmap() +
-  geom_point(aes(x = `start station longitude`, y = `start station latitude`), alpha = 0.04, color="red", data = evening_bikes, position = position_jitter(width = 0.005, height = 0.005)) +
-  geom_point(aes(x = `end station longitude`, y = `end station latitude`), alpha = 0.03, color="blue", data = evening_bikes, position = position_jitter(width = 0.005, height = 0.005)) +
+  geom_point(aes(x = `start station longitude`, y = `start station latitude`), alpha = 0.06, color="red", data = evening_bikes, position = position_jitter(width = 0.005, height = 0.005)) +
+  geom_point(aes(x = `end station longitude`, y = `end station latitude`), alpha = 0.045, color="blue", data = evening_bikes, position = position_jitter(width = 0.005, height = 0.005)) +
   theme_void() +
   labs(title = "Evening commute")
 ```
