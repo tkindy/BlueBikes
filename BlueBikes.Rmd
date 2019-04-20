@@ -2,11 +2,12 @@
 title: "BlueBikes"
 author: "Charles Zheng & Tyler Kindy"
 date: "March 22, 2019"
-output: pdf_document
+output: html_document
 ---
 
+## Setup
+
 ```{r}
-install.packages("gridExtra")
 library(plyr)
 library(reshape)
 library(gridExtra)
@@ -403,7 +404,7 @@ get_googlemap(
   style = c(feature = "poi", visibility = "off")
 ) %>%
   ggmap() +
-  geom_segment(data=trip_durations_top,aes(x = `start station longitude`, y = `start station latitude`, xend = `end station longitude`, yend = `end station latitude`, color = as.numeric(`trip_duration`), size=`count`), alpha=0.5) +
+  geom_segment(data=trip_durations,aes(x = `start station longitude`, y = `start station latitude`, xend = `end station longitude`, yend = `end station latitude`, color = as.numeric(`trip_duration`), size=`count`), alpha=0.5) +
   sc + scale_size(range=c(0.2, 1.5), guide=FALSE)
 
 get_googlemap(
@@ -411,7 +412,7 @@ get_googlemap(
   style = c(feature = "poi", visibility = "off")
 ) %>%
   ggmap() +
-  geom_segment(data=trip_durations_top,aes(x = `start station longitude`, y = `start station latitude`, xend = `end station longitude`, yend = `end station latitude`, color = as.numeric(`trip_duration`), size=`count`), alpha=0.5) +
+  geom_segment(data=trip_durations,aes(x = `start station longitude`, y = `start station latitude`, xend = `end station longitude`, yend = `end station latitude`, color = as.numeric(`trip_duration`), size=`count`), alpha=0.5) +
   sc + scale_size(range=c(0.2, 1.5), guide=FALSE)
 
 ```
@@ -421,3 +422,9 @@ This visualization draws a line connecting every pair of stations with over 150 
 Another trend is the clique-like nature of some neighborhoods. For example, East Boston is interconnected via a few stations, but very rarely do Bluebikes ever travel between East Boston and the rest of the Bluebike system. A similar, but less striking clique is present in Davis Square, in which the Davis T stop acts as the center of a spoke-like series of radial connections. In fact, this notion of a "center station" with many radially-outward extending spokes is seen in a few other stations: South Station, North Station, Porter Square, and Lechmere, all of which are T stops. This usage map hints that many Bostonians use Bluebikes as a secondary method of transportation, and as a way of connecting their subway ride to their ultimate destination. 
 
 Finally, the map shows the relative connectedness of bike paths throughout Boston, Cambridge, Brookline, and Somerville. For example, trips from Charlestown to Downtown Boston tend to take longer than other trips traveling a similar distance. 
+
+
+## Closing remarks
+
+The goal of this project was to answer the broad question, "How do Bostonians use our municipal bike-sharing system, Bluebikes?". To this end, we created 5 visualizations each analyzing a different area of the publicly available Bluebike usage data. Along the way, we took pit stops to make inferences about, and clean up, the data that we were given. We believe each visualization tells an interesting story, whether it be where the busiest stations are during commute rush hours, or how the usage at a station changes over the course of a 24-hour period. Taken together, these visualizations paint a comprehensive picture of the way Bostonians (as well as Cantabrigians, Brookliners, and Somervillians) use Bluebikes.
+
