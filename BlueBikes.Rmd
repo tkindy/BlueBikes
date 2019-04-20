@@ -5,7 +5,11 @@ date: "March 22, 2019"
 output: html_document
 ---
 
+For our project, we dove into the Bluebikes (formerly Hubway) bike sharing data available on https://data.boston.gov to create several interesting visualizations.
+
 ## Setup
+
+We made use of several libraries to manipulate and visualize our data. tidyverse and ggplot did the bulk of the heavy lifting, but packages like lubridate, reshape, and scatterpie gave us opportunities to look at the data in different ways and learn new tools.
 
 ```{r}
 library(plyr)
@@ -18,6 +22,10 @@ library(lubridate)
 library(scatterpie)
 ```
 
+## The Data
+
+Bluebikes has made data available on every bike ride in their network going back at least a year. We pulled and combined the data for all of the months of 2018 as the basis for our project.
+
 ```{r}
 bikes <- read_csv("data/bluebikes.csv") %>%
   mutate(
@@ -29,24 +37,7 @@ bikes <- read_csv("data/bluebikes.csv") %>%
 bikes
 ```
 
-```{r}
-bikes %>%
-  group_by(`start station id`, `end station id`) %>%
-  summarize(count = n()) %>%
-  arrange(-count)
-```
-
-```{r}
-genders = bikes %>%
-  group_by(usertype, gender) %>%
-  summarize(count = n())
-genders
-```
-
-Genders:
-  0 - unknown
-  1 - male
-  2 - female
+For each ride, we got the duration in seconds, the start and stop times, information about the start and stop stations (including an ID, name, latitude, and longitude), a unique bike ID, and user demographic information (namely birth year and coded gender). To facilitate some later visualizations, we computed the start and stop days and hours and added those as separate columns.
 
 ```{r}
 starts = bikes %>%
