@@ -237,7 +237,8 @@ genders = genders_start %>%
   arrange(station_id)
 
 genders <- cast(genders, station_id~gender, fill = 0)
-genders
+genders %>%
+  head(10)
 ```
 
 ```{r}
@@ -258,7 +259,8 @@ ages = ages_start %>%
   select(station_id, birth_decade, trips) %>%
   arrange(station_id)
 ages <- cast(ages, station_id~birth_decade, fill = 0)
-ages
+ages %>%
+  head(10)
 ```
 
 We found the gender and age distrbution for all trips that either started or ended at each station, as you can see above. We then joined this with our `stations` table to get the lat/long information, and computed the male and female ratios for each station.
@@ -268,7 +270,8 @@ gender_stations = genders %>%
   inner_join(stations) %>%
   mutate(total = `0` + `1` + `2`, male_ratio = `1` / total, female_ratio = `2` / total) %>%
   filter(total >= 500)
-gender_stations
+gender_stations %>%
+  head(10)
 ```
 
 With this data, we took the 15 stations with the highest male ratio, and the 15 stations with the highest female ratio, and plotted these as pie charts on a map.
