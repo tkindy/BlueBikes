@@ -188,6 +188,8 @@ real_users %>%
   )
 ```
 
+## Visualization 4: Station Demographics
+
 ```{r}
 genders_start = real_users %>%
   group_by(`start station id`, gender) %>%
@@ -228,6 +230,8 @@ ages = ages_start %>%
 ages <- cast(ages, station_id~birth_decade)
 ages
 ```
+
+## Visualization 3: Station Activity
 
 ```{r}
 bucket_date <- function(time) {
@@ -289,8 +293,6 @@ max_y = max(
      pull(end_count))
 )
 ```
-
-## Visualization 3: Station Activity
 
 For our third visualization, we wanted to look at the network activity on a per-station basis. What times of day are active and inactive for each station in the network? This information would be useful to Bluebikes itself. Stations with high demand during a given time period could run out of bikes during the rush hour. However, if another station is a hot destination point during that same time period, there is an opportunity for some real-time network rebalancing by moving the bikes to stations where they're needed.
 
