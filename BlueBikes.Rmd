@@ -1,7 +1,7 @@
 
 ---
 title: "BlueBikes"
-author: "Tyler Kindy"
+author: "Charles Zheng & Tyler Kindy"
 date: "March 22, 2019"
 output: pdf_document
 ---
@@ -264,6 +264,21 @@ sep_buckets = grouped_buckets %>%
 ```
 
 ```{r}
+library(plyr)
+library(gridExtra)
+
+max_y = max(
+  (grouped_buckets %>%
+  filter(start_count == max(start_count)) %>%
+    pull(start_count)),
+  (grouped_buckets %>%
+     filter(end_count == max(end_count)) %>%
+     pull(end_count))
+)
+```
+
+```{r, fig.width=10, fig.height=20}
+
 graphs = sep_buckets %>%
   map(function(bucket_tbl) {
     id = (bucket_tbl %>% select(station_id) %>% head(1))[[1]]
@@ -271,14 +286,13 @@ graphs = sep_buckets %>%
       ggplot() +
       geom_line(aes(x = bucket, y = start_count, color = "red")) +
       geom_line(aes(x = bucket, y = end_count, color = "blue")) +
+      # coord_cartesian(ylim = c(0, max_y)) +
       labs(title = str_interp("${id}")) +
-      theme(legend.position = "none")
+      theme_void() +
+      theme(plot.title = element_text(size = 10, hjust = 0.5), legend.position = "none")
   })
-```
 
-```{r}
-library(plyr)
-splat(grid.arrange)(graphs[0:10], ncol = 5)
+splat(grid.arrange)(graphs, ncol = 10)
 ```
 
 ```{r}
