@@ -1,3 +1,5 @@
 data/*.csv
 /data/zips/
 .Rproj.user
+.RData
+.Rhistory
