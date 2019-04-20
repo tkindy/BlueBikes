@@ -13,6 +13,7 @@ library(RColorBrewer)
 library(tidyverse)
 library(ggmap)
 library(lubridate)
+library(scatterpie)
 ```
 
 ```{r}
@@ -206,7 +207,7 @@ genders = genders_start %>%
   select(station_id, gender, trips) %>%
   arrange(station_id)
 
-genders <- cast(genders, station_id~gender)
+genders <- cast(genders, station_id~gender, fill = 0)
 genders
 ```
 
@@ -227,8 +228,53 @@ ages = ages_start %>%
   mutate(trips = count_start + count_end) %>%
   select(station_id, birth_decade, trips) %>%
   arrange(station_id)
-ages <- cast(ages, station_id~birth_decade)
+ages <- cast(ages, station_id~birth_decade, fill = 0)
 ages
+```
+
+```{r}
+gender_stations = genders %>%
+  inner_join(stations) %>%
+  mutate(total = `0` + `1` + `2`, male_ratio = `1` / total, female_ratio = `2` / total) %>%
+  filter(total >= 500)
+gender_stations
+```
+
+```{r}
+male_stations = gender_stations %>%
+  top_n(15, male_ratio)
+
+female_stations = gender_stations %>%
+  top_n(15, female_ratio)
+
+gender_stations_subset = bind_rows(male_stations, female_stations) %>%
+  distinct(station_id, .keep_all = TRUE)
+
+get_googlemap(
+  "42.345,-71.075", zoom = 13, maptype = "roadmap",
+  style = c(feature = "poi", visibility = "off")
+) %>%
+  ggmap() +
+  geom_scatterpie(aes(x = lon, y = lat, r = 0.002), data = gender_stations_subset, cols = c("0", "1", "2")) +
+  scale_fill_manual(values = c("0" = "gray", "1" = "blue", "2" = "pink")) +
+  coord_equal() +
+  theme_void()
+```
+
+```{r}
+age_stations = ages %>%
+  mutate(total = `1920` + `1930` + `1940` + `1950` + `1960` + `1970` + `1980` + `1990` + `2000`) %>%
+  top_n(50, total) %>%
+  inner_join(stations)
+
+get_googlemap(
+  "42.370,-71.085", zoom = 13, maptype = "roadmap",
+  style = c(feature = "poi", visibility = "off")
+) %>%
+  ggmap() +
+  geom_scatterpie(aes(x = lon, y = lat, r = 0.002), data = age_stations, cols = c("1920", "1930", "1940", "1950", "1960", "1970", "1980", "1990", "2000")) +
+  coord_equal() +
+  theme_void()
 ```
 
 ## Visualization 3: Station Activity
