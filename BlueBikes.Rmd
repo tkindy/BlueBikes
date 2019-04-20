@@ -203,6 +203,18 @@ real_users %>%
 
 ## Visualization 3: Station Demographics
 
+We were curious if there were any demographic trends at each station. Since we had both age and gender data, we decided to create two separate visualizations for these. With so many stations, it was difficult to come up with an appropriate visualization, but our research turned up the package 'scatterpie' which we think gives us a pretty good way of tackling it.
+
+First, we had to figure out what the 'gender' column in the data actually meant. Each row had either a 0, 1, or 2 in this spot. With some quick manipulations, we saw a clear trend in the data.
+
+```{r}
+real_users %>%
+  group_by(gender) %>%
+  summarize(count = n())
+```
+
+The vast majority of Bluebikes users have gender 1, followed by gender 2 and gender 0. We used this table to assume that gender 1 means 'male', gender 2 means 'female', and gender 0 means 'other/prefer not to say'. The rest of our project makes this assumption.
+
 ```{r}
 genders_start = real_users %>%
   group_by(`start station id`, gender) %>%
@@ -244,6 +256,8 @@ ages <- cast(ages, station_id~birth_decade, fill = 0)
 ages
 ```
 
+We found the gender and age distrbution for all trips that either started or ended at each station, as you can see above. We then joined this with our `stations` table to get the lat/long information, and computed the male and female ratios for each station.
+
 ```{r}
 gender_stations = genders %>%
   inner_join(stations) %>%
@@ -252,26 +266,36 @@ gender_stations = genders %>%
 gender_stations
 ```
 
+With this data, we took the 15 stations with the highest male ratio, and the 15 stations with the highest female ratio, and plotted these as pie charts on a map.
+
 ```{r}
 male_stations = gender_stations %>%
   top_n(15, male_ratio)
+male_stations
 
 female_stations = gender_stations %>%
   top_n(15, female_ratio)
+female_stations
+```
 
+```{r}
 gender_stations_subset = bind_rows(male_stations, female_stations) %>%
   distinct(station_id, .keep_all = TRUE)
 
 get_googlemap(
-  "42.345,-71.075", zoom = 13, maptype = "roadmap",
+  "42.345,-71.075", zoom = 12, maptype = "roadmap",
   style = c(feature = "poi", visibility = "off")
 ) %>%
   ggmap() +
-  geom_scatterpie(aes(x = lon, y = lat, r = 0.002), data = gender_stations_subset, cols = c("0", "1", "2")) +
+  geom_scatterpie(aes(x = lon, y = lat, r = 0.003), data = gender_stations_subset, cols = c("0", "1", "2")) +
   scale_fill_manual(values = c("0" = "gray", "1" = "blue", "2" = "pink")) +
   coord_equal() +
   theme_void()
 ```
+
+This visualization gave us some interesting insights. First, most of the stations have a higher male ratio than female ratio. This makes since, since the majority of Bluebikes users are male. However, the stations with the highest male ratio are clustered in the downtown area, while stations with higher female ratios were located outside of the city center, such as in West Cambridge, Dorchester, and Brookline.
+
+This could be a reflection of long-standing gender discrimination in the financial sector since that industry dominates the downtown area. We do not want to speculate too much, however.
 
 ```{r}
 age_stations = ages %>%
@@ -289,7 +313,15 @@ get_googlemap(
   theme_void()
 ```
 
+Then, we plotted pie charts of age distribution for the 50 most active stations. This has some interesting correlations as well. Most stations in the downtown area have a plurality of riders born in the 1980s, while stations along Mass Ave both in Boston and Cambridge lean more towards populations born in the 1990s. This makes sense since the Mass Ave corridor is home to many universities and therefore probably have large student populations. People born in the '80s and '90s dominate the Bluebikes network compared to every other decade combined.
+
 ## Visualization 4: Station Activity
+
+For our fourth visualization, we wanted to look at the network activity on a per-station basis. What times of day are active and inactive for each station in the network? This information would be useful to Bluebikes itself. Stations with high demand during a given time period could run out of bikes during the rush hour. However, if another station is a hot destination point during that same time period, there is an opportunity for some real-time network rebalancing by moving the bikes to stations where they're needed.
+
+This information could also be of interest to Bluebikes riders. These statistics could be used to give users an idea of when rush hour is for their favorite or home station, enabling them to plan further ahead for their commute or other ride.
+
+First, we normalized every ride into one 24 hour period, and then grouped them into half-hour buckets. We then split and joined the start and end values so that we had a start and end count for each (station, time_bucket) pair in one row.
 
 ```{r}
 bucket_date <- function(time) {
@@ -328,6 +360,8 @@ grouped_buckets = start_buckets %>%
 grouped_buckets
 ```
 
+To keep the size of the output manageable, we chose the 40 most active stations to graph side-by-side.
+
 ```{r}
 keepers = grouped_buckets %>%
   group_by(station_id) %>%
@@ -341,21 +375,6 @@ sep_buckets = grouped_buckets %>%
   split(.$station_id)
 ```
 
-```{r}
-max_y = max(
-  (grouped_buckets %>%
-  filter(start_count == max(start_count)) %>%
-    pull(start_count)),
-  (grouped_buckets %>%
-     filter(end_count == max(end_count)) %>%
-     pull(end_count))
-)
-```
-
-For our fourth visualization, we wanted to look at the network activity on a per-station basis. What times of day are active and inactive for each station in the network? This information would be useful to Bluebikes itself. Stations with high demand during a given time period could run out of bikes during the rush hour. However, if another station is a hot destination point during that same time period, there is an opportunity for some real-time network rebalancing by moving the bikes to stations where they're needed.
-
-This information could also be of interest to Bluebikes riders. These statistics could be used to give users an idea of when rush hour is for their favorite or home station, enabling them to plan further ahead for their commute or other ride.
-
 ```{r, fig.width=10, fig.height=20}
 
 graphs = sep_buckets %>%
@@ -366,10 +385,7 @@ graphs = sep_buckets %>%
       ggplot() +
       geom_line(aes(x = bucket, y = start_count, color = "red")) +
       geom_line(aes(x = bucket, y = end_count, color = "blue")) +
-      # coord_cartesian(ylim = c(0, max_y)) +
-      # labs(title = str_interp("${id}")) +
       labs(title = name) +
-      # theme_void() +
       theme(
         plot.title = element_text(size = 10, hjust = 0.5), 
         legend.position = "none",
@@ -382,7 +398,7 @@ graphs = sep_buckets %>%
 splat(grid.arrange)(graphs, ncol = 2)
 ```
 
-Before analyzing this visualization, it's important to understand what it's displaying. First, each graph contains data for a typical day in 2018. Each X-axis represents the 24 hours in a day. However, the graphs cannot be compared to one another directly since they're each plotted with their own Y-axis corresponding to their own average data. These graphs should be viewed as a way of seeing the daily trend at a particular station. For clarity, we have chosen to show the 40 most active stations.
+Before analyzing this visualization, it's important to understand what it's displaying. First, each graph contains data for a typical day in 2018. Each X-axis represents the 24 hours in a day. However, the graphs cannot be compared to one another directly since they're each plotted with their own Y-axis corresponding to their own average data. These graphs should be viewed as a way of seeing the daily trend at a particular station.
 
 With that explanation out of the way, there are many interesting conclusions we can draw from this visualization. Many of the stations conform to a typical rush hour schedule, such as MIT Stata Center (with an outward morning commute and inward evening commute) and Nashua Street at Red Auerbach Way (with the opposite cycle). Some stations, like Back Bay, are clearly hubs of transit where many people are leaving from and coming to at both rush hours. This could also be the case for stations that are close to both residential and business areas like Lechmere Station.
 
